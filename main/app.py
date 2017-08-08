@@ -1,6 +1,9 @@
+import json
 import logging
+import os
 
-from flask import Flask, render_template, request
+import flask
+from flask import Flask, render_template, request, json, url_for
 from main.dev.chl_parser import charles_parser
 
 app = Flask(__name__)
@@ -23,7 +26,15 @@ def route_charles_parser():
     file_url = json_dict['file_url']
     parse_result = charles_parser.from_url(file_url)
 
-    return parse_result.url
+    return json.jsonify(parse_result.__dict__)
+    # return parse_result.download_url
+
+
+@app.route('/dev/charles_parser/download/<filename>', methods=['GET', 'POST'])
+def route_charles_parser_download(filename):
+    download_dir = os.path.join(flask.current_app.root_path, charles_parser.DOWNLAOD_DIR)
+    return flask.send_from_directory(directory=download_dir, filename=filename)
+
 
 if __name__ == '__main__':
     # main.run()
