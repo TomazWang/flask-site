@@ -20,8 +20,24 @@ class Result:
 
     def __init__(self, rc) -> None:
         super().__init__()
-        self.rc = rc
+        self._rc = -999
+        self.rm = ''
         self.file_name = ''
+        self.rc = rc
+
+    @property
+    def rc(self):
+        return self._rc
+
+    @rc.setter
+    def rc(self, rc):
+        self._rc = rc
+        if rc == Result.RC_SUCCESS:
+            self.rm = '處理成功'
+        elif rc == Result.RC_ERR_FILE_EXT:
+            self.rm = '檔案類型錯誤'
+        elif rc == Result.RC_ERR_FILE_TYPE:
+            self.rm = '請使用 session file'
 
 
 def zipdir(dir_path, dest="") -> str:
@@ -76,7 +92,11 @@ def from_url(url: str) -> Result:
         temp_file.write(r.content)
 
     # parse file
-    folder, output_file_arr = json_parser.parse(temp_file_name, suffix=timestamp)
+    try:
+        folder, output_file_arr = json_parser.parse(temp_file_name, suffix=timestamp)
+    except KeyError:
+        return Result(Result.RC_ERR_FILE_TYPE)
+
     folder_path = './{}/{}'.format(TEMP_FILE_FOLDER, folder)
 
     # zipfile
