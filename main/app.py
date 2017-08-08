@@ -32,9 +32,13 @@ def route_charles_parser():
 
 @app.route('/dev/charles_parser/download/<path:filename>', methods=['GET', 'POST'])
 def route_charles_parser_download(filename):
-    logging.warning('[WARNING][app] >> route_charles_parser_download: filename = '+filename)
+    logging.warning('[WARNING][app] >> route_charles_parser_download: filename = ' + filename)
     download_dir = os.path.join(flask.current_app.root_path, charles_parser.DOWNLAOD_DIR)
-    logging.debug('[DEBUG][app] >> route_charles_parser_download: download_dir = '+download_dir)
+    logging.warning(
+        '[WARNING][app] >> route_charles_parser_download: download_dir = ' + download_dir)
+    logging.warning('[WARNING][app] >> route_charles_parser_download: dl_dir exists ? '
+                    + os.path.exists(download_dir))
+
     return flask.send_from_directory(directory=download_dir, filename=filename)
 
 
