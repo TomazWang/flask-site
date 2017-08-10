@@ -28,7 +28,7 @@ def parse_chlsj(data: Dict, **kwargs) -> str:
 
     out_file_suffix = str(kwargs.get('out_file_suffix', ''))
     if len(out_file_suffix) > 0:
-        out_file_suffix = '_' + out_file_suffix
+        out_file_suffix = out_file_suffix + '_'
 
     folder = kwargs.get('folder', last_part)
     folder_path = './{}/{}'.format(charles_parser.TEMP_FILE_FOLDER, folder)
@@ -38,7 +38,7 @@ def parse_chlsj(data: Dict, **kwargs) -> str:
         os.mkdir('./{}'.format(folder_path))
 
     out_file_name = '{}/parsed_{}{}.txt' \
-        .format(folder_path, last_part, out_file_suffix)
+        .format(folder_path, out_file_suffix, last_part)
 
     # create a file
     out_file = open(out_file_name, 'w+', encoding='utf-8')
@@ -64,17 +64,18 @@ def parse_chlsj(data: Dict, **kwargs) -> str:
 
     out_file.write('\n\n\n')
 
-    # request body
-    out_file.write('\t' + '> Body' + '\n')
-    body_content_json = request['body']['text']
-    parsed_body_json = json.loads(body_content_json, encoding='utf-8')
-    parsed_body_str = json \
-        .dumps(parsed_body_json, indent=4, sort_keys=True, ensure_ascii=False)
-    for line in parsed_body_str.split('\n'):
-        out_file.write('\t\t')
-        out_file.write(line)
-        out_file.write('\n')
-    out_file.write('\n\n\n')
+    if 'body' in request:
+        # request body
+        out_file.write('\t' + '> Body' + '\n')
+        body_content_json = request['body']['text']
+        parsed_body_json = json.loads(body_content_json, encoding='utf-8')
+        parsed_body_str = json \
+            .dumps(parsed_body_json, indent=4, sort_keys=True, ensure_ascii=False)
+        for line in parsed_body_str.split('\n'):
+            out_file.write('\t\t')
+            out_file.write(line)
+            out_file.write('\n')
+        out_file.write('\n\n\n')
 
     out_file.write('===========================================================================')
     out_file.write('\n\n\n')
@@ -96,19 +97,20 @@ def parse_chlsj(data: Dict, **kwargs) -> str:
 
     out_file.write('\n\n\n')
 
-    # response body
-    out_file.write('\t' + '> Body' + '\n')
-    body_content_json = response['body']['text']
-    parsed_body_json = json.loads(body_content_json, encoding='utf-8')
-    parsed_body_str = json \
-        .dumps(parsed_body_json, indent=4, sort_keys=True, ensure_ascii=False)
+    if 'body' in response:
+        # response body
+        out_file.write('\t' + '> Body' + '\n')
+        body_content_json = response['body']['text']
+        parsed_body_json = json.loads(body_content_json, encoding='utf-8')
+        parsed_body_str = json \
+            .dumps(parsed_body_json, indent=4, sort_keys=True, ensure_ascii=False)
 
-    for line in parsed_body_str.split('\n'):
-        out_file.write('\t\t')
-        out_file.write(line)
-        out_file.write('\n')
+        for line in parsed_body_str.split('\n'):
+            out_file.write('\t\t')
+            out_file.write(line)
+            out_file.write('\n')
+
     out_file.write('\n\n\n\n')
-
     out_file.close()
 
     return out_file_name
