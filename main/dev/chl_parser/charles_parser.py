@@ -6,8 +6,10 @@ import flask
 import logging
 import requests
 from flask import url_for, current_app
+from google.cloud import storage
 
 from main.dev.chl_parser import json_parser
+from main.gcloud_util import cloud_storage
 
 TEMP_FILE_FOLDER = 'temp_charles_parser'
 DOWNLAOD_DIR = 'download'
@@ -22,7 +24,6 @@ class Result:
         super().__init__()
         self._rc = -999
         self.rm = ''
-        self.file_name = ''
         self.rc = rc
 
     @property
@@ -78,6 +79,7 @@ def from_url(url: str) -> Result:
 
     # temp file name
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    datestamp = datetime.now().strftime('%Y%m%d')
     temp_file_name = './{}/temp_{}.json'.format(TEMP_FILE_FOLDER, timestamp)
 
     # check if temp folder exists
@@ -109,16 +111,22 @@ def from_url(url: str) -> Result:
     zipf_path = './{}/{}.zip'.format(DOWNLAOD_DIR, folder)
     zipdir(folder_path, dest=zipf_path)
 
+    blob_name = 'download/{}/{}.zip'.format(datestamp, folder)
+    blob = cloud_storage.upload_public_blob(zipf_path, blob_name)
+
+    # Get public url for this blob
     result = Result(Result.RC_SUCCESS)
-    result.file_name = '{}.zip'.format(folder)
-    result.url = url_for('route_charles_parser_download', filename=result.file_name, _external=True)
+    result.url = blob.public_url
 
     # remvoe temp file
     os.remove(temp_file_name)
+    os.remove(zipf_path)
 
     for child_file in os.listdir(folder_path):
         os.remove('{}/{}'.format(folder_path, child_file))
 
     os.rmdir(folder_path)
+
+    # TODO: 10/08/2017, @tomaz: remove expired blob
 
     return result

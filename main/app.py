@@ -8,7 +8,6 @@ from main.dev.chl_parser import charles_parser
 
 app = Flask(__name__)
 
-
 @app.route('/')
 def index():
     return render_template("index.html")
@@ -25,8 +24,7 @@ def route_charles_parser():
 
     file_url = json_dict['file_url']
     parse_result = charles_parser.from_url(file_url)
-
-    return json.jsonify(parse_result.__dict__)
+    return json.dumps(parse_result.__dict__, encoding='utf-8')
     # return parse_result.download_url
 
 
