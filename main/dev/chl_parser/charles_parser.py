@@ -2,11 +2,7 @@ import os
 from datetime import datetime
 import zipfile
 
-import flask
-import logging
 import requests
-from flask import url_for, current_app
-from google.cloud import storage
 
 from main.dev.chl_parser import json_parser
 from main.gcloud_util import cloud_storage
