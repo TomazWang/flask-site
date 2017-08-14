@@ -66,26 +66,21 @@ def parse_chlsj(data: Dict, **kwargs) -> str:
 
     out_file.write('\n\n\n')
 
-    if 'body' in response:
-        # response body
-        body = response.get('body')
-        is_decoded = response.get('body', False)
+    if 'body' in request:
+        # request body
+        body = request.get('body')
+        encoding = body.get('encoding', 'utf-8')
 
-        if is_decoded:
-            encoding = body.get('encoding', 'utf-8')
+        if encoding == 'base64':
             encoded_raw = body.get('encoded')
 
             out_file.write('\t' + '> Body' + '\n')
-            if encoding == 'base64':
-                decoded = base64.b64decode(encoded_raw).decode('utf-8')
+            decoded = base64.b64decode(encoded_raw).decode('utf-8')
 
-                for line in decoded.split('\n'):
-                    out_file.write('\t\t{}\n'.format(line))
+            for line in decoded.split('\n'):
+                out_file.write('\t\t{}\n'.format(line))
 
-            else:
-                out_file.write('\t\tCan\'t decode {}\n'.format(encoding))
-
-        elif 'text' in response.get('body', {}):
+        elif 'text' in request.get('body', {}):
             body_content_json = request.get('body').get('text')
             parsed_body_json = json.loads(body_content_json, encoding='utf-8')
             out_file.write('\t' + '> Body' + '\n')
@@ -121,24 +116,19 @@ def parse_chlsj(data: Dict, **kwargs) -> str:
     if 'body' in response:
         # response body
         body = response.get('body')
-        is_decoded = response.get('body', False)
+        encoding = body.get('encoding', 'utf-8')
 
-        if is_decoded:
-            encoding = body.get('encoding', 'utf-8')
+        if encoding == 'base64':
             encoded_raw = body.get('encoded')
 
             out_file.write('\t' + '> Body' + '\n')
-            if encoding == 'base64':
-                decoded = base64.b64decode(encoded_raw).decode('utf-8')
+            decoded = base64.b64decode(encoded_raw).decode('utf-8')
 
-                for line in decoded.split('\n'):
-                    out_file.write('\t\t{}\n'.format(line))
-
-            else:
-                out_file.write('\t\tCan\'t decode {}\n'.format(encoding))
+            for line in decoded.split('\n'):
+                out_file.write('\t\t{}\n'.format(line))
 
         elif 'text' in response.get('body', {}):
-            body_content_json = request.get('body').get('text')
+            body_content_json = response.get('body').get('text')
             parsed_body_json = json.loads(body_content_json, encoding='utf-8')
             out_file.write('\t' + '> Body' + '\n')
             parsed_body_str = json \
