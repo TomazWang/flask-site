@@ -17,11 +17,11 @@ def parse_chlsj(data: Dict, **kwargs) -> str:
     :rtype: str
     """
 
-    host = data['host']
-    path = data['path']
-    method = data['method']
-    request = data['request']
-    response = data['response']
+    host = data.get('host', '')
+    path = data.get('path', '')
+    method = data.get('method', '')
+    request = data.get('request', '')
+    response = data.get('response', '')
 
     # create a file name base on url
     last_part = str(path).split('/')[-1].replace('.', '')
@@ -55,19 +55,20 @@ def parse_chlsj(data: Dict, **kwargs) -> str:
     # request header
     out_file.write('\t' + '> Headers' + '\n')
 
-    for header in request['header']['headers']:
-        out_file.write('\t\t')
-        out_file.write(header['name'])
-        out_file.write(': ')
-        out_file.write(header['value'])
-        out_file.write('\n')
+    if 'headers' in request.get('header', {}):
+        for header in request.get('header').get('headers', []):
+            out_file.write('\t\t')
+            out_file.write(header.get('name', ''))
+            out_file.write(': ')
+            out_file.write(header.get('value', ''))
+            out_file.write('\n')
 
     out_file.write('\n\n\n')
 
-    if 'body' in request:
+    if 'text' in response.get('body', {}):
         # request body
         out_file.write('\t' + '> Body' + '\n')
-        body_content_json = request['body']['text']
+        body_content_json = request.get('body').get('text')
         parsed_body_json = json.loads(body_content_json, encoding='utf-8')
         parsed_body_str = json \
             .dumps(parsed_body_json, indent=4, sort_keys=True, ensure_ascii=False)
@@ -81,26 +82,27 @@ def parse_chlsj(data: Dict, **kwargs) -> str:
     out_file.write('\n\n\n')
 
     # Response
-    response_code = response['status']
+    response_code = response.get('status', 'N/A')
     out_file.write('+ Response (' + str(response_code) + ')')
     out_file.write('\n\n')
 
     # response header
     out_file.write('\t' + '> Headers' + '\n')
 
-    for header in response['header']['headers']:
-        out_file.write('\t\t')
-        out_file.write(header['name'])
-        out_file.write(': ')
-        out_file.write(header['value'])
-        out_file.write('\n')
+    if 'headers' in request.get('header', {}):
+        for header in request.get('header').get('headers', []):
+            out_file.write('\t\t')
+            out_file.write(header['name'])
+            out_file.write(': ')
+            out_file.write(header['value'])
+            out_file.write('\n')
 
     out_file.write('\n\n\n')
 
-    if 'body' in response:
+    if 'text' in response.get('body', {}):
         # response body
         out_file.write('\t' + '> Body' + '\n')
-        body_content_json = response['body']['text']
+        body_content_json = request.get('body').get('text')
         parsed_body_json = json.loads(body_content_json, encoding='utf-8')
         parsed_body_str = json \
             .dumps(parsed_body_json, indent=4, sort_keys=True, ensure_ascii=False)

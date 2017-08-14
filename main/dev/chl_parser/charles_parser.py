@@ -34,7 +34,7 @@ class Result:
         elif rc == Result.RC_ERR_FILE_EXT:
             self.rm = '檔案類型錯誤'
         elif rc == Result.RC_ERR_FILE_TYPE:
-            self.rm = '請使用 session file'
+            self.rm = '解析檔案錯誤，去罵 @tomaz'
 
 
 def zipdir(dir_path, dest="") -> str:
