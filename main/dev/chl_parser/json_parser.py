@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 from typing import Dict, Tuple, List
@@ -65,17 +66,35 @@ def parse_chlsj(data: Dict, **kwargs) -> str:
 
     out_file.write('\n\n\n')
 
-    if 'text' in response.get('body', {}):
-        # request body
-        out_file.write('\t' + '> Body' + '\n')
-        body_content_json = request.get('body').get('text')
-        parsed_body_json = json.loads(body_content_json, encoding='utf-8')
-        parsed_body_str = json \
-            .dumps(parsed_body_json, indent=4, sort_keys=True, ensure_ascii=False)
-        for line in parsed_body_str.split('\n'):
-            out_file.write('\t\t')
-            out_file.write(line)
-            out_file.write('\n')
+    if 'body' in response:
+        # response body
+        body = response.get('body')
+        is_decoded = response.get('body', False)
+
+        if is_decoded:
+            encoding = body.get('encoding', 'utf-8')
+            encoded_raw = body.get('encoded')
+
+            out_file.write('\t' + '> Body' + '\n')
+            if encoding == 'base64':
+                decoded = base64.b64decode(encoded_raw).decode('utf-8')
+
+                for line in decoded.split('\n'):
+                    out_file.write('\t\t{}\n'.format(line))
+
+            else:
+                out_file.write('\t\tCan\'t decode {}\n'.format(encoding))
+
+        elif 'text' in response.get('body', {}):
+            body_content_json = request.get('body').get('text')
+            parsed_body_json = json.loads(body_content_json, encoding='utf-8')
+            out_file.write('\t' + '> Body' + '\n')
+            parsed_body_str = json \
+                .dumps(parsed_body_json, indent=4, sort_keys=True, ensure_ascii=False)
+
+            for line in parsed_body_str.split('\n'):
+                out_file.write('\t\t{}\n'.format(line))
+
         out_file.write('\n\n\n')
 
     out_file.write('===========================================================================')
@@ -92,25 +111,41 @@ def parse_chlsj(data: Dict, **kwargs) -> str:
     if 'headers' in request.get('header', {}):
         for header in request.get('header').get('headers', []):
             out_file.write('\t\t')
-            out_file.write(header['name'])
+            out_file.write(header.get('name', ''))
             out_file.write(': ')
-            out_file.write(header['value'])
+            out_file.write(header.get('value', ''))
             out_file.write('\n')
 
     out_file.write('\n\n\n')
 
-    if 'text' in response.get('body', {}):
+    if 'body' in response:
         # response body
-        out_file.write('\t' + '> Body' + '\n')
-        body_content_json = request.get('body').get('text')
-        parsed_body_json = json.loads(body_content_json, encoding='utf-8')
-        parsed_body_str = json \
-            .dumps(parsed_body_json, indent=4, sort_keys=True, ensure_ascii=False)
+        body = response.get('body')
+        is_decoded = response.get('body', False)
 
-        for line in parsed_body_str.split('\n'):
-            out_file.write('\t\t')
-            out_file.write(line)
-            out_file.write('\n')
+        if is_decoded:
+            encoding = body.get('encoding', 'utf-8')
+            encoded_raw = body.get('encoded')
+
+            out_file.write('\t' + '> Body' + '\n')
+            if encoding == 'base64':
+                decoded = base64.b64decode(encoded_raw).decode('utf-8')
+
+                for line in decoded.split('\n'):
+                    out_file.write('\t\t{}\n'.format(line))
+
+            else:
+                out_file.write('\t\tCan\'t decode {}\n'.format(encoding))
+
+        elif 'text' in response.get('body', {}):
+            body_content_json = request.get('body').get('text')
+            parsed_body_json = json.loads(body_content_json, encoding='utf-8')
+            out_file.write('\t' + '> Body' + '\n')
+            parsed_body_str = json \
+                .dumps(parsed_body_json, indent=4, sort_keys=True, ensure_ascii=False)
+
+            for line in parsed_body_str.split('\n'):
+                out_file.write('\t\t{}\n'.format(line))
 
     out_file.write('\n\n\n\n')
     out_file.close()
