@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 import zipfile
 
+import logging
 import requests
 
 from main.dev.chl_parser import json_parser
@@ -15,11 +16,14 @@ class Result:
     RC_SUCCESS = 0
     RC_ERR_FILE_EXT = -100
     RC_ERR_FILE_TYPE = -101
+    RC_ERR_CONTENT_CANN = -201
+    RC_ERR_UNKNOWN = -999
 
-    def __init__(self, rc) -> None:
+    def __init__(self, rc, error='') -> None:
         super().__init__()
         self._rc = -999
         self.rm = ''
+        self.error = error
         self.rc = rc
 
     @property
@@ -35,6 +39,10 @@ class Result:
             self.rm = '檔案類型錯誤'
         elif rc == Result.RC_ERR_FILE_TYPE:
             self.rm = '解析檔案錯誤，去罵 @tomaz'
+        elif rc == Result.RC_ERR_CONTENT_CANN:
+            self.rm = '無法取得檔案'
+        elif rc == Result.RC_ERR_UNKNOWN:
+            self.rm = '解析檔案錯誤，去罵 @tomaz ({})'.format(self.error)
 
 
 def zipdir(dir_path, dest="") -> str:
@@ -83,17 +91,26 @@ def from_url(url: str) -> Result:
         os.mkdir('./{}'.format(TEMP_FILE_FOLDER))
 
     # download file from url
-    r = requests.get(url)
+    # try:
+    json_content = requests.get(url).json()
+    # except Exception as e:
+    #     excepName = type(e).__name__
+    #     return Result(Result.RC_ERR_UNKNOWN, '{}:{}'.format(excepName, str(e)))
 
-    # write to local file
-    with open(temp_file_name, 'wb+') as temp_file:
-        temp_file.write(r.content)
+    # try:
+    if json_content is not None:
+        folder, output_file_arr = json_parser.parse(temp_file_name,
+                                                        suffix=timestamp,
+                                                        json_content=json_content)
+    else:
+        return Result(Result.RC_ERR_CONTENT_CANN)
 
-    # parse file
-    try:
-        folder, output_file_arr = json_parser.parse(temp_file_name, suffix=timestamp)
-    except KeyError:
-        return Result(Result.RC_ERR_FILE_TYPE)
+    # except KeyError:
+    #     return Result(Result.RC_ERR_FILE_TYPE)
+    # except Exception as e:
+    #     excepName = type(e).__name__
+    #     return Result(Result.RC_ERR_UNKNOWN, '{}:{}'
+    #                   .format(excepName, str(e)))
 
     folder_path = './{}/{}'.format(TEMP_FILE_FOLDER, folder)
 
@@ -115,13 +132,13 @@ def from_url(url: str) -> Result:
     result.url = blob.public_url
 
     # remvoe temp file
-    os.remove(temp_file_name)
-    os.remove(zipf_path)
+    # os.remove(temp_file_name)
+    # os.remove(zipf_path)
 
-    for child_file in os.listdir(folder_path):
-        os.remove('{}/{}'.format(folder_path, child_file))
-
-    os.rmdir(folder_path)
+    # for child_file in os.listdir(folder_path):
+    #     os.remove('{}/{}'.format(folder_path, child_file))
+    #
+    # os.rmdir(folder_path)
 
     # TODO: 10/08/2017, @tomaz: remove expired blob
 
