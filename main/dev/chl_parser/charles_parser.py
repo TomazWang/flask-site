@@ -2,7 +2,6 @@ import os
 from datetime import datetime
 import zipfile
 
-import logging
 import requests
 
 from main.dev.chl_parser import json_parser
