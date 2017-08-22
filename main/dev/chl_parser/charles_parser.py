@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 import zipfile
@@ -91,7 +92,9 @@ def from_url(url: str) -> Result:
 
     # download file from url
     # try:
-    json_content = requests.get(url).json()
+    r = requests.get(url)
+    content = r.content.decode('utf-8')
+    json_content = json.loads(content)
     # except Exception as e:
     #     excepName = type(e).__name__
     #     return Result(Result.RC_ERR_UNKNOWN, '{}:{}'.format(excepName, str(e)))
